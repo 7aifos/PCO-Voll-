@@ -28,16 +28,11 @@
         }
         .chart-container {
             position: relative;
-            margin: auto;
-            height: 300px;
-            width: 100%;
+            margin: auto; /* For horizontal centering if max-width is less than parent */
+            width: 100%; /* Take full width of parent column */
+            /* height and max-width are controlled by Tailwind classes on the HTML elements for responsiveness */
         }
-        .modal-overlay {
-            transition: opacity 0.3s ease;
-        }
-        .modal-content {
-            transition: transform 0.3s ease;
-        }
+        /* No need for modal-overlay or modal-content transitions here, they are now handled by Tailwind classes directly on elements */
     </style>
 </head>
 <body class="text-gray-800">
@@ -270,8 +265,8 @@
     </footer>
 
     <!-- Modal Template -->
-    <div id="comment-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden" onclick="closeModal(event)">
-        <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] overflow-y-auto transform scale-95" onclick="event.stopPropagation()">
+    <div id="comment-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300" onclick="closeModal(event)">
+        <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] overflow-y-auto transform scale-95 opacity-0 transition-all duration-300" onclick="event.stopPropagation()">
             <div class="sticky top-0 bg-white p-4 border-b flex justify-between items-center">
                 <h3 id="modal-title" class="text-xl font-bold">Comentários Selecionados</h3>
                 <button onclick="closeModal()" class="text-gray-500 hover:text-gray-800">&times;</button>
@@ -285,9 +280,9 @@
     <script>
         const reportData = {
             overview: {
-                enps: 45.83,
-                leadershipNps: 45.83,
-                rhNps: 66.67,
+                enps: { score: 45.83, promoters: 45.83, neutrals: 54.17, detractors: 0 },
+                leadershipNps: { score: 45.83, promoters: 62.5, neutrals: 20.83, detractors: 16.67 },
+                rhNps: { score: 66.67, promoters: 66.67, neutrals: 33.33, detractors: 0 },
                 strengths: [
                     "Ambiente de Desenvolvimento e Potencial de Crescimento",
                     "Cultura Interna e União do Time",
@@ -511,26 +506,42 @@
             return '#ef4444'; // Rose 500
         };
 
-        function createNpsChart(canvasId, score) {
+        function createNpsChart(canvasId, npsData) {
             const ctx = document.getElementById(canvasId).getContext('2d');
             new Chart(ctx, {
                 type: 'doughnut',
                 data: {
+                    labels: ['Promotores', 'Neutros', 'Detratores'],
                     datasets: [{
-                        data: [score + 100, 100 - score],
-                        backgroundColor: [npsColor(score), '#e5e7eb'],
+                        data: [npsData.promoters, npsData.neutrals, npsData.detractors],
+                        backgroundColor: [
+                            '#10b981', // Verde para Promotores
+                            '#f59e0b', // Amarelo para Neutros
+                            '#ef4444'  // Vermelho para Detratores
+                        ],
                         borderWidth: 0,
-                        circumference: 180,
-                        rotation: 270,
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '80%',
+                    cutout: '70%', // Ajustar o tamanho do buraco do donut
                     plugins: {
-                        tooltip: { enabled: false },
-                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed !== null) {
+                                        label += context.parsed.toFixed(2) + '%';
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                        legend: { display: false }, // Esconder legenda padrão
                     },
                     animation: {
                         animateScale: true,
@@ -542,16 +553,20 @@
                     beforeDraw: (chart) => {
                         const { width, height, ctx } = chart;
                         ctx.restore();
-                        const fontSize = (height / 114).toFixed(2);
-                        ctx.font = `bold ${fontSize}em Inter, sans-serif`;
-                        ctx.textBaseline = 'middle';
-                        ctx.fillStyle = npsColor(score);
                         
-                        const text = score.toFixed(2);
-                        const textX = Math.round((width - ctx.measureText(text).width) / 2);
-                        const textY = height / 1.5;
+                        const fontSize = Math.min(width * 0.12, 30); // Tamanho da fonte dinâmico para a pontuação
+                        ctx.font = `bold ${fontSize}px Inter, sans-serif`;
+                        ctx.textBaseline = 'middle';
+                        ctx.textAlign = 'center';
+                        ctx.fillStyle = '#1f2937'; // Cor escura para o texto da pontuação
 
-                        ctx.fillText(text, textX, textY);
+                        const text = npsData.score.toFixed(2); // Exibir a pontuação NPS
+                        
+                        // Posicionar o texto no centro do buraco do donut
+                        const centerX = chart.chartArea.left + chart.chartArea.width / 2;
+                        const centerY = chart.chartArea.top + chart.chartArea.height / 2;
+
+                        ctx.fillText(text, centerX, centerY);
                         ctx.save();
                     }
                 }]
@@ -601,7 +616,7 @@
                                         label += ': ';
                                     }
                                     if (context.parsed.x !== null) {
-                                        label += context.parsed.x.toFixed(2) + '%';
+                                        label += context.parsed.toFixed(2) + '%';
                                     }
                                     return label;
                                 }
@@ -613,6 +628,7 @@
         }
 
         const modal = document.getElementById('comment-modal');
+        const modalContent = modal.querySelector('.modal-content');
         const modalTitle = document.getElementById('modal-title');
         const modalBody = document.getElementById('modal-body');
 
@@ -636,24 +652,33 @@
                 modalBody.appendChild(div);
             });
             
-            modal.classList.remove('hidden');
-            document.body.classList.add('overflow-hidden');
-            setTimeout(() => {
-                modal.querySelector('.modal-overlay').classList.remove('opacity-0');
-                modal.querySelector('.modal-content').classList.remove('scale-95');
-            }, 10);
+            modal.classList.remove('hidden'); // Remove display: none
+            document.body.classList.add('overflow-hidden'); // Previne rolagem do corpo
+
+            // Forçar reflow para garantir que a remoção de 'hidden' seja renderizada antes das transições
+            modal.offsetHeight; 
+
+            // Ativar transições (removendo as classes de estado inicial)
+            modal.classList.remove('opacity-0');
+            modalContent.classList.remove('opacity-0', 'scale-95');
         }
 
         function closeModal(event) {
-             if (event && event.target !== modal) {
+            // Se um evento for fornecido (clique no fundo do overlay), garantir que o clique foi no overlay em si.
+            // Se nenhum evento (chamada direta do botão 'X'), proceder para fechar diretamente.
+            if (event && event.target !== modal) {
                 return;
             }
-            modal.querySelector('.modal-overlay').classList.add('opacity-0');
-            modal.querySelector('.modal-content').classList.add('scale-95');
+            
+            // Iniciar transição de saída (adicionando as classes de estado inicial de volta)
+            modal.classList.add('opacity-0');
+            modalContent.classList.add('opacity-0', 'scale-95');
+            
+            // Esconder completamente após a transição
             setTimeout(() => {
-                modal.classList.add('hidden');
-                document.body.classList.remove('overflow-hidden');
-            }, 300);
+                modal.classList.add('hidden'); // Adiciona display: none
+                document.body.classList.remove('overflow-hidden'); // Restaura rolagem do corpo
+            }, 300); // Duração da transição
         }
 
     </script>

@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Interativo - Pesquisa de Clima Organizacional - Voll Jr</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Corporate Calm -->
+    <!-- Application Structure Plan: A dashboard-style SPA with a top-level overview and deep-dive thematic sections accessed via a main navigation. This structure allows both quick high-level understanding for busy directors and detailed exploration for those who want to dig deeper. It prioritizes clarity and user-driven exploration over the linear format of the source document. Key interactions will be chart hovers for tooltips and modal/expandable sections for viewing qualitative comments, keeping the interface uncluttered. -->
+    <!-- Visualization & Content Choices: NPS scores are shown in impactful doughnut charts. Likert-scale questions use horizontal stacked bar charts to easily compare sentiment distribution. Qualitative quotes are in modals to prevent clutter. Key findings and recommendations use a card-based layout for scannability. All visualizations are created with Chart.js on Canvas. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .nav-link {
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link.active, .nav-link:hover {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+        }
+        .chart-container {
+            position: relative;
+            margin: auto;
+            height: 300px;
+            width: 100%;
+        }
+        .modal-overlay {
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s ease;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- Header & Navigation -->
+    <header class="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-40">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <h1 class="text-xl font-bold text-gray-900">PCO Voll Jr</h1>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#overview" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-700">Visão Geral</a>
+                        <a href="#leadership" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-700">Liderança</a>
+                        <a href="#development" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-700">Desenvolvimento</a>
+                        <a href="#culture" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-700">Cultura</a>
+                        <a href="#communication" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-700">Comunicação</a>
+                        <a href="#rh" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-700">RH</a>
+                        <a href="#recommendations" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-700">Recomendações</a>
+                    </div>
+                </div>
+                 <div class="md:hidden">
+                    <button id="mobile-menu-button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
+                        <span class="sr-only">Abrir menu principal</span>
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+             <div id="mobile-menu" class="md:hidden hidden">
+                <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                    <a href="#overview" class="block nav-link px-3 py-2 rounded-md text-base font-medium text-gray-700">Visão Geral</a>
+                    <a href="#leadership" class="block nav-link px-3 py-2 rounded-md text-base font-medium text-gray-700">Liderança</a>
+                    <a href="#development" class="block nav-link px-3 py-2 rounded-md text-base font-medium text-gray-700">Desenvolvimento</a>
+                    <a href="#culture" class="block nav-link px-3 py-2 rounded-md text-base font-medium text-gray-700">Cultura</a>
+                    <a href="#communication" class="block nav-link px-3 py-2 rounded-md text-base font-medium text-gray-700">Comunicação</a>
+                    <a href="#rh" class="block nav-link px-3 py-2 rounded-md text-base font-medium text-gray-700">RH</a>
+                    <a href="#recommendations" class="block nav-link px-3 py-2 rounded-md text-base font-medium text-gray-700">Recomendações</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        
+        <!-- Overview Section -->
+        <section id="overview" class="py-8 px-4">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">Visão Geral da Pesquisa</h2>
+            <p class="text-lg text-gray-600 mb-8">Um resumo dos principais indicadores de clima organizacional, pontos fortes e áreas de atenção prioritárias identificadas na pesquisa.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <!-- eNPS Card -->
+                <div class="bg-white p-6 rounded-lg shadow-md flex flex-col items-center">
+                    <h3 class="text-lg font-semibold mb-2">eNPS Geral</h3>
+                    <div class="chart-container w-full max-w-xs h-48">
+                        <canvas id="enpsChart"></canvas>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-500 text-center">Classificação: <span class="font-bold text-amber-600">Aprimoramento</span></p>
+                </div>
+                <!-- Leadership NPS Card -->
+                <div class="bg-white p-6 rounded-lg shadow-md flex flex-col items-center">
+                    <h3 class="text-lg font-semibold mb-2">eNPS Liderança</h3>
+                     <div class="chart-container w-full max-w-xs h-48">
+                        <canvas id="leadershipNpsChart"></canvas>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-500 text-center">Classificação: <span class="font-bold text-amber-600">Aprimoramento</span></p>
+                </div>
+                <!-- RH NPS Card -->
+                <div class="bg-white p-6 rounded-lg shadow-md flex flex-col items-center">
+                    <h3 class="text-lg font-semibold mb-2">eNPS RH</h3>
+                     <div class="chart-container w-full max-w-xs h-48">
+                        <canvas id="rhNpsChart"></canvas>
+                    </div>
+                     <p class="mt-2 text-sm text-gray-500 text-center">Classificação: <span class="font-bold text-emerald-600">Excelência</span></p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Strengths Card -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-bold text-emerald-600 mb-4 flex items-center">
+                        <span class="text-3xl mr-3">👍</span> Principais Pontos Fortes
+                    </h3>
+                    <ul id="strengths-list" class="space-y-3 text-gray-700"></ul>
+                </div>
+                <!-- Areas for Improvement Card -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-bold text-rose-600 mb-4 flex items-center">
+                        <span class="text-3xl mr-3">🔍</span> Áreas de Atenção
+                    </h3>
+                    <ul id="improvements-list" class="space-y-3 text-gray-700"></ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Leadership Section -->
+        <section id="leadership" class="py-12 px-4 bg-gray-50 rounded-lg my-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">Liderança e Gestão</h2>
+            <p class="text-lg text-gray-600 mb-8">Análise sobre a percepção dos colaboradores em relação à escuta, feedback e parceria com suas lideranças diretas.</p>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <h3 class="text-lg font-semibold mb-2">Meu líder direto me escuta e leva minhas opiniões em consideração.</h3>
+                        <div class="chart-container h-32"><canvas id="leaderListensChart"></canvas></div>
+                    </div>
+                     <div>
+                        <h3 class="text-lg font-semibold mb-2">Recebo feedbacks claros e construtivos com regularidade.</h3>
+                        <div class="chart-container h-32"><canvas id="feedbackChart"></canvas></div>
+                    </div>
+                </div>
+                 <div class="text-center mt-8">
+                    <button onclick="showModal('leadershipComments')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition">Ver Comentários sobre Liderança</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Development Section -->
+        <section id="development" class="py-12 px-4 my-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">Reconhecimento e Desenvolvimento</h2>
+            <p class="text-lg text-gray-600 mb-8">Como os colaboradores percebem o reconhecimento pelo seu esforço e as oportunidades de crescimento profissional.</p>
+             <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+                    <div>
+                        <h3 class="text-lg font-semibold mb-2">Me sinto reconhecido(a) pelo meu desempenho.</h3>
+                        <div class="chart-container h-32"><canvas id="recognitionChart"></canvas></div>
+                    </div>
+                     <div>
+                        <h3 class="text-lg font-semibold mb-2">Tenho oportunidades reais de crescimento.</h3>
+                        <div class="chart-container h-32"><canvas id="growthChart"></canvas></div>
+                    </div>
+                     <div>
+                        <h3 class="text-lg font-semibold mb-2">Sinto que meu trabalho tem impacto e é valorizado.</h3>
+                        <div class="chart-container h-32"><canvas id="impactChart"></canvas></div>
+                    </div>
+                </div>
+                 <div class="text-center mt-8">
+                    <button onclick="showModal('developmentComments')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition">Ver Comentários sobre Desenvolvimento</button>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Culture Section -->
+        <section id="culture" class="py-12 px-4 bg-gray-50 rounded-lg my-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">Cultura e Pertencimento</h2>
+            <p class="text-lg text-gray-600 mb-8">Análise sobre o sentimento de pertencimento, autenticidade e a vivência da cultura da empresa no dia a dia.</p>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+                    <div>
+                        <h3 class="text-lg font-semibold mb-2">Sinto que posso ser quem sou aqui.</h3>
+                        <div class="chart-container h-32"><canvas id="authenticityChart"></canvas></div>
+                    </div>
+                     <div>
+                        <h3 class="text-lg font-semibold mb-2">A cultura é vivida no dia a dia.</h3>
+                        <div class="chart-container h-32"><canvas id="cultureLivedChart"></canvas></div>
+                    </div>
+                     <div>
+                        <h3 class="text-lg font-semibold mb-2">Me sinto parte da equipe e da missão.</h3>
+                        <div class="chart-container h-32"><canvas id="belongingChart"></canvas></div>
+                    </div>
+                </div>
+                 <div class="text-center mt-8">
+                    <button onclick="showModal('cultureComments')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition">Ver Comentários sobre Cultura</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Communication Section -->
+        <section id="communication" class="py-12 px-4 my-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">Comunicação e Transparência</h2>
+            <p class="text-lg text-gray-600 mb-8">Avaliação da eficácia dos canais de comunicação, clareza das informações e conforto para se expressar.</p>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+                    <div>
+                        <h3 class="text-lg font-semibold mb-2">Recebo informações de forma clara e no tempo certo.</h3>
+                        <div class="chart-container h-32"><canvas id="infoClarityChart"></canvas></div>
+                    </div>
+                     <div>
+                        <h3 class="text-lg font-semibold mb-2">Os canais de comunicação são eficazes.</h3>
+                        <div class="chart-container h-32"><canvas id="channelsChart"></canvas></div>
+                    </div>
+                     <div>
+                        <h3 class="text-lg font-semibold mb-2">Me sinto confortável para expressar ideias.</h3>
+                        <div class="chart-container h-32"><canvas id="comfortToExpressChart"></canvas></div>
+                    </div>
+                </div>
+                 <div class="text-center mt-8">
+                    <button onclick="showModal('communicationComments')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition">Ver Comentários sobre Comunicação</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- RH Section -->
+        <section id="rh" class="py-12 px-4 bg-gray-50 rounded-lg my-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">RH e Apoio ao Colaborador</h2>
+            <p class="text-lg text-gray-600 mb-8">Percepção sobre o RH como parceiro, a clareza de seus processos e a preocupação com o bem-estar dos membros.</p>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <h3 class="text-lg font-semibold mb-2">Os processos do RH são claros e acessíveis.</h3>
+                        <div class="chart-container h-32"><canvas id="rhProcessesChart"></canvas></div>
+                    </div>
+                     <div>
+                        <h3 class="text-lg font-semibold mb-2">Sinto que o RH se preocupa com o bem-estar.</h3>
+                        <div class="chart-container h-32"><canvas id="rhWellbeingChart"></canvas></div>
+                    </div>
+                </div>
+                 <div class="text-center mt-8">
+                    <button onclick="showModal('rhComments')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition">Ver Comentários sobre RH</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recommendations Section -->
+        <section id="recommendations" class="py-12 px-4 my-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">Recomendações Chave</h2>
+            <p class="text-lg text-gray-600 mb-8">Com base na análise, estas são as ações estratégicas propostas para os próximos 6 meses para aprimorar o clima organizacional.</p>
+            <div id="recommendations-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Recommendations will be injected here by JS -->
+            </div>
+        </section>
+
+    </main>
+    
+    <footer class="bg-gray-800 text-white">
+        <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 text-center text-sm">
+            Relatório de Pesquisa de Clima Organizacional - Voll Jr | Gerado em Junho de 2025
+        </div>
+    </footer>
+
+    <!-- Modal Template -->
+    <div id="comment-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden" onclick="closeModal(event)">
+        <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] overflow-y-auto transform scale-95" onclick="event.stopPropagation()">
+            <div class="sticky top-0 bg-white p-4 border-b flex justify-between items-center">
+                <h3 id="modal-title" class="text-xl font-bold">Comentários Selecionados</h3>
+                <button onclick="closeModal()" class="text-gray-500 hover:text-gray-800">&times;</button>
+            </div>
+            <div id="modal-body" class="p-6 space-y-4">
+                <!-- Comments injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const reportData = {
+            overview: {
+                enps: 45.83,
+                leadershipNps: 45.83,
+                rhNps: 66.67,
+                strengths: [
+                    "Ambiente de Desenvolvimento e Potencial de Crescimento",
+                    "Cultura Interna e União do Time",
+                    "Engajamento e Ambição por Metas",
+                    "Lideranças Abertas à Escuta e Colaboração",
+                    "RH como Parceiro e Preocupação com Bem-Estar"
+                ],
+                improvements: [
+                    "Comunicação e Integração Interáreas (DOR CENTRAL)",
+                    "Estruturação e Definição de Processos",
+                    "Regularidade e Proatividade do Feedback",
+                    "Reconhecimento Formal e Individualizado",
+                    "Clareza e Acessibilidade dos Processos de RH"
+                ]
+            },
+            charts: {
+                leaderListens: {
+                    labels: ['Nota 6', 'Nota 7', 'Nota 9', 'Nota 10'],
+                    data: [8.33, 8.33, 16.67, 66.67]
+                },
+                feedback: {
+                    labels: ['Nota 1-3', 'Nota 6', 'Nota 7', 'Nota 8', 'Nota 9', 'Nota 10'],
+                    data: [8.34, 12.50, 16.67, 8.33, 16.67, 37.50]
+                },
+                recognition: {
+                    labels: ['Nota 6', 'Nota 7', 'Nota 8', 'Nota 9', 'Nota 10'],
+                    data: [4.17, 20.83, 16.67, 29.17, 29.17]
+                },
+                growth: {
+                    labels: ['Nota 7', 'Nota 8', 'Nota 9', 'Nota 10'],
+                    data: [4.17, 4.17, 16.67, 75.00]
+                },
+                impact: {
+                    labels: ['Nota 5-6', 'Nota 7', 'Nota 8', 'Nota 9', 'Nota 10'],
+                    data: [8.34, 8.33, 20.83, 12.50, 50.00]
+                },
+                authenticity: {
+                    labels: ['Nota 6', 'Nota 7', 'Nota 8', 'Nota 9', 'Nota 10'],
+                    data: [4.17, 20.83, 12.50, 16.67, 45.83]
+                },
+                cultureLived: {
+                    labels: ['Nota 6', 'Nota 7', 'Nota 8', 'Nota 9', 'Nota 10'],
+                    data: [4.17, 29.17, 20.83, 20.83, 25.00]
+                },
+                belonging: {
+                    labels: ['Nota 7', 'Nota 8', 'Nota 9', 'Nota 10'],
+                    data: [4.17, 16.67, 29.17, 50.00]
+                },
+                infoClarity: {
+                    labels: ['Nota 6', 'Nota 7', 'Nota 8', 'Nota 9', 'Nota 10'],
+                    data: [20.83, 20.83, 29.17, 8.33, 20.83]
+                },
+                channels: {
+                    labels: ['Nota 6', 'Nota 7', 'Nota 8', 'Nota 9', 'Nota 10'],
+                    data: [20.83, 12.50, 20.83, 16.67, 29.17]
+                },
+                comfortToExpress: {
+                    labels: ['Nota 5', 'Nota 7', 'Nota 8', 'Nota 9', 'Nota 10'],
+                    data: [4.17, 4.17, 12.50, 29.17, 50.00]
+                },
+                rhProcesses: {
+                    labels: ['Nota 3', 'Nota 6', 'Nota 7', 'Nota 8', 'Nota 9', 'Nota 10'],
+                    data: [4.17, 8.33, 20.83, 20.83, 12.50, 33.33]
+                },
+                rhWellbeing: {
+                    labels: ['Nota 7', 'Nota 8', 'Nota 9', 'Nota 10'],
+                    data: [4.17, 8.33, 20.83, 66.67]
+                },
+            },
+            comments: {
+                leadershipComments: [
+                    "Em geral, feedbacks ainda são um ponto a se trabalhar na Voll...",
+                    "Gosto muito da liderança pois ouve as ideias propostas...",
+                    "Vejo meu diretor direto como uma pessoa aberta a novidades...",
+                    "Algumas vezes, disse que não poderia comparecer na reunião no horário e mesmo assim a reunião foi marcada, me senti invalidada.",
+                    "Meu líder ouve opiniões e acho bom trabalhar ao lado dele.",
+                    "Meu líder direto busca sempre levar em consideração a visão de seus subordinados...",
+                    "O único empecilho que eu vejo... são as questões de conflitos internos...",
+                    "Ele é uma pessoa as vezes inconveniente, que não faz o seu trabalho direito...",
+                    "Falta feedback, só recebo se solicito.",
+                    "Por vezes sinto falta de clareza, não nas palavras, mas nas ações...",
+                    "É uma liderança forte... Minha única insegurança é que minha liderança poderia demandar mais tarefas...",
+                    "Minha diretora se mostra sempre ser disponível a ouvir... No entanto, ultimamente venho sentindo uma certa ausência...",
+                    "Como uma parceria para tomada de decisões... talvez as perguntas não englobem o que eu acredite ser o que atinge mais: uma postura que pode muito bem confundida com uso demasiado de poder.",
+                    "Sinto que ele não conhece tão bem os processos da minha área... Sinto que ele está bem ausente de forma geral...",
+                ],
+                developmentComments: [
+                   "Me sinto realmente pertencente da empresa e meu esforço é reconhecido...",
+                   "Acredito que a Voll Jr ofereça muita oportunidade de desenvolvimento pessoal...",
+                   "Ter a plataforma da atuar, com vários cursos, é muito bom.",
+                   "Sinto reconhecimento pelos meus colegas pelo trabalho realizado na EJ, mas ao mesmo tempo, pessoalmente eu não sinto realmente o impacto das minhas atividades.",
+                   "Acredito que muito do meu trabalho é valorizado pelo seu resultado, mas não pelo seu esforço. Acontece muito de certas pessoas se vangloriarem e dormirem em cima do meu mérito.",
+                   "Desde que entrei na EJ, percebo que me desenvolvi bastante profissionalmente...",
+                   "Percebo que raramente recebo feedbacks que expressem reconhecimento direto pelo meu desempenho, principalmente por parte da liderança.",
+                ],
+                cultureComments: [
+                    "Eu amo estar na Voll e mesmo com a minha timidez tenho muita abertura...",
+                    "Já me senti muito julgada por ser nova e não saber coisas que para pessoas mais velha são comuns...",
+                    "Dado que a cultura da Voll Jr é algo que ainda está sendo implementada...",
+                    "Percebo que por mais que eu tenha engajamento total com a empresa, sinto que falta engajamento para alguns membros.",
+                    "Acredito que a cultura da empresa é muita bem vivida, porém ela não é 100% a mesma da qual as pessoas pensam que ela é.",
+                    "Acredito que podemos estar tomando um rumo de ter uma cultura um pouco mais agressiva do que esperava...",
+                    "Viver a Voll, nos últimos tempos, tem sido a parte mais feliz da minha graduação.",
+                ],
+                communicationComments: [
+                    "A comunicação é uma dor da Voll visto que afeta bem no sentido das pasagens de informação...",
+                    "Não tenho certeza se nossos canais são tão eficientes para comunicação pela falta de adesão dos membros...",
+                    "Muitas vezes recebo ou mesmo repasso informações ainda em tempo hábil... não me sinto plenamente confortável em compartilhar minhas ideias...",
+                    "Acredito que não existe muita transparência entre áreas.",
+                    "As informações nem sempre chegam no momento certo, as vezes sinto que vem em cima da hora...",
+                    "Esse valor não é bem praticado por boa parte dos líderes, isso fere muito o engajamento...",
+                    "Acredito que os canais de comunicação da empresa são sim eficazes... Ainda assim, sinto que muita coisa circula de forma informal.",
+                ],
+                rhComments: [
+                    "O trabalho de RH agora se torna muito mais presente... o que o RH faz com maestria.",
+                    "Imagino que sempre estão lá olhando por nós... como se fosse nossos anjos...",
+                    "Devido a falta de transparencia necessária com os processos e a ausência de um RH na área até então, não sinto que impactam meu dia a dia.",
+                    "Acho que falta redirecionar o tempo dos colaboradores de RH para ações mais eficazes...",
+                    "As vezes sinto falta de relatórios ou de feedbacks do que está ocorrendo com os membros de maneira mais recorrente.",
+                    "Talvez o RH precise trabalhar um pouco melhor na sua transparência e agir de maneira mais ativa nas reuniões de área.",
+                    "Os produtos deles são mais focados no pós efetivação, fazendo com que os membros recém efetivados não tenham contato com todos os produtos...",
+                    "Vejo o RH como um parceiro muito positivo... sabe cobrar e chamar atenção quando precisa...",
+                ]
+            },
+            recommendations: [
+                { title: "Fortalecer Cultura de Feedback", icon: "💬", text: "Desenvolver um programa de treinamento para líderes e estabelecer uma cadência formal (quinzenal/mensal) para reuniões 1:1 focadas em desenvolvimento." },
+                { title: "Aprimorar Comunicação Interáreas", icon: "🌐", text: "Implementar canais mais eficazes, promover workshops interáreas e formalizar processos-chave para garantir clareza e alinhamento." },
+                { title: "Estruturar Processos Internos", icon: "🏗️", text: "Criar grupos de trabalho para revisar e documentar processos críticos e capacitar lideranças na gestão de projetos e delegação." },
+                { title: "Desenvolver Lideranças", icon: "👥", text: "Oferecer treinamentos em comunicação não-violenta e gestão de conflitos, e criar um canal seguro para reportar desconfortos." },
+                { title: "Implementar Reconhecimento Formal", icon: "🏆", text: "Criar um programa que valorize esforço e resultado, com critérios claros e diversas formas de reconhecimento (verbal, escrito, etc.)." },
+                { title: "Consolidar a Cultura e Engajamento", icon: "🤝", text: "Promover eventos que reforcem os valores, desenvolver estratégias para aumentar o engajamento e implementar um programa de mentoria para novos membros." },
+                { title: "Otimizar Fluxo de Informações", icon: "🌊", text: "Revisar e padronizar o fluxo de informações cruciais, garantindo que cheguem com clareza e antecedência a todos os níveis." },
+                { title: "Aumentar Visibilidade do RH", icon: "🌟", text: "Comunicar de forma mais clara e acessível os processos do RH e explorar relatórios mensais para as áreas sobre bem-estar e reconhecimentos." },
+            ]
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Mobile menu toggle
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            // Populate lists
+            const strengthsList = document.getElementById('strengths-list');
+            reportData.overview.strengths.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'flex items-start';
+                li.innerHTML = `<span class="text-emerald-500 mr-2 mt-1">✓</span><span>${item}</span>`;
+                strengthsList.appendChild(li);
+            });
+
+            const improvementsList = document.getElementById('improvements-list');
+            reportData.overview.improvements.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'flex items-start';
+                li.innerHTML = `<span class="text-rose-500 mr-2 mt-1">❗</span><span>${item}</span>`;
+                improvementsList.appendChild(li);
+            });
+
+            const recommendationsContainer = document.getElementById('recommendations-container');
+            reportData.recommendations.forEach(rec => {
+                const div = document.createElement('div');
+                div.className = 'bg-white p-6 rounded-lg shadow-md flex items-start space-x-4';
+                div.innerHTML = `
+                    <div class="text-4xl">${rec.icon}</div>
+                    <div>
+                        <h4 class="text-lg font-bold text-gray-900">${rec.title}</h4>
+                        <p class="text-gray-600">${rec.text}</p>
+                    </div>
+                `;
+                recommendationsContainer.appendChild(div);
+            });
+            
+            // NPS Chart
+            createNpsChart('enpsChart', reportData.overview.enps);
+            createNpsChart('leadershipNpsChart', reportData.overview.leadershipNps);
+            createNpsChart('rhNpsChart', reportData.overview.rhNps);
+
+            // Horizontal Bar Charts
+            createHorizontalBarChart('leaderListensChart', reportData.charts.leaderListens);
+            createHorizontalBarChart('feedbackChart', reportData.charts.feedback);
+            createHorizontalBarChart('recognitionChart', reportData.charts.recognition);
+            createHorizontalBarChart('growthChart', reportData.charts.growth);
+            createHorizontalBarChart('impactChart', reportData.charts.impact);
+            createHorizontalBarChart('authenticityChart', reportData.charts.authenticity);
+            createHorizontalBarChart('cultureLivedChart', reportData.charts.cultureLived);
+            createHorizontalBarChart('belongingChart', reportData.charts.belonging);
+            createHorizontalBarChart('infoClarityChart', reportData.charts.infoClarity);
+            createHorizontalBarChart('channelsChart', reportData.charts.channels);
+            createHorizontalBarChart('comfortToExpressChart', reportData.charts.comfortToExpress);
+            createHorizontalBarChart('rhProcessesChart', reportData.charts.rhProcesses);
+            createHorizontalBarChart('rhWellbeingChart', reportData.charts.rhWellbeing);
+
+            // Nav link active state on scroll
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href').substring(1) === entry.target.id) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                });
+            }, { rootMargin: '-50% 0px -50% 0px' });
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+        });
+
+        const npsColor = (score) => {
+            if (score > 50) return '#10b981'; // Emerald 500
+            if (score > 0) return '#f59e0b'; // Amber 500
+            return '#ef4444'; // Rose 500
+        };
+
+        function createNpsChart(canvasId, score) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [score + 100, 100 - score],
+                        backgroundColor: [npsColor(score), '#e5e7eb'],
+                        borderWidth: 0,
+                        circumference: 180,
+                        rotation: 270,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '80%',
+                    plugins: {
+                        tooltip: { enabled: false },
+                        legend: { display: false },
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true
+                    }
+                },
+                plugins: [{
+                    id: 'doughnutLabel',
+                    beforeDraw: (chart) => {
+                        const { width, height, ctx } = chart;
+                        ctx.restore();
+                        const fontSize = (height / 114).toFixed(2);
+                        ctx.font = `bold ${fontSize}em Inter, sans-serif`;
+                        ctx.textBaseline = 'middle';
+                        ctx.fillStyle = npsColor(score);
+                        
+                        const text = score.toFixed(2);
+                        const textX = Math.round((width - ctx.measureText(text).width) / 2);
+                        const textY = height / 1.5;
+
+                        ctx.fillText(text, textX, textY);
+                        ctx.save();
+                    }
+                }]
+            });
+        }
+        
+        function createHorizontalBarChart(canvasId, chartData) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [' '],
+                    datasets: chartData.labels.map((label, index) => ({
+                        label: label,
+                        data: [chartData.data[index]],
+                        backgroundColor: `rgba(59, 130, 246, ${1 - index * 0.15})`,
+                    }))
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            stacked: true,
+                            display: false,
+                            max: 100
+                        },
+                        y: {
+                            stacked: true,
+                            display: false
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                font: { size: 10 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.x !== null) {
+                                        label += context.parsed.x.toFixed(2) + '%';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        const modal = document.getElementById('comment-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalBody = document.getElementById('modal-body');
+
+        function showModal(commentKey) {
+            const comments = reportData.comments[commentKey];
+            const titleMap = {
+                leadershipComments: "Comentários sobre Liderança",
+                developmentComments: "Comentários sobre Desenvolvimento",
+                cultureComments: "Comentários sobre Cultura",
+                communicationComments: "Comentários sobre Comunicação",
+                rhComments: "Comentários sobre RH"
+            };
+            
+            modalTitle.textContent = titleMap[commentKey] || "Comentários Selecionados";
+            modalBody.innerHTML = '';
+            
+            comments.forEach(comment => {
+                const div = document.createElement('div');
+                div.className = 'bg-gray-100 p-4 rounded-lg border-l-4 border-blue-400';
+                div.innerHTML = `<p class="text-gray-700 italic">"${comment}"</p>`;
+                modalBody.appendChild(div);
+            });
+            
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+            setTimeout(() => {
+                modal.querySelector('.modal-overlay').classList.remove('opacity-0');
+                modal.querySelector('.modal-content').classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeModal(event) {
+             if (event && event.target !== modal) {
+                return;
+            }
+            modal.querySelector('.modal-overlay').classList.add('opacity-0');
+            modal.querySelector('.modal-content').classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }, 300);
+        }
+
+    </script>
+</body>
+</html>

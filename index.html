@@ -1,4 +1,4 @@
-                     <!DOCTYPE html>
+                  <!DOCTYPE html>
 <html lang="pt-BR" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
@@ -6,6 +6,8 @@
     <title>Painel Interativo - Pesquisa de Clima Organizacional - Voll Jr</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Incluindo o plugin de datalabels para Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -42,7 +44,7 @@
             <div class="flex items-center justify-between h-16">
                 <div class="flex-shrink-0 flex items-center">
                     <!-- Company Logo - Embedded Base64 Image -->
-                    <img id="company-logo" src="data:image/png;base64,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" alt="Logo da Empresa" class="h-10 w-10 mr-2 rounded-md">
+                    <img id="company-logo" src="data:image/png;base64,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" alt="Logo da Empresa" class="h-10 w-10 mr-2 rounded-md">
                     <h1 class="text-xl font-bold text-gray-900">PCO Voll Jr</h1>
                 </div>
                 <div class="hidden md:block">
@@ -321,6 +323,9 @@
     </div>
 
     <script>
+        // Registrar o plugin datalabels globalmente
+        Chart.register(ChartDataLabels);
+
         const reportData = {
             overview: {
                 // NPS Geral Atualizado com seus dados
@@ -350,7 +355,7 @@
                 },
                 feedback: {
                     labels: ['Nota 1-3', 'Nota 6', 'Nota 7', 'Nota 8', 'Nota 9', 'Nota 10'],
-                    percentages: [8.34, 12.50, 16.67, 8.33, 16.67, 37.50],
+                    percentages: [8.33, 12.50, 16.67, 8.33, 16.67, 37.50], // Ajustado de 8.34 para 8.33 para totalizar 100%
                     counts: [2, 3, 4, 2, 4, 9]
                 },
                 recognition: {
@@ -648,6 +653,7 @@
             createNpsChart('rhNpsChart', reportData.overview.rhNps);
 
             // Horizontal Bar Charts
+            // Pass the entire data object including counts to the chart function
             createHorizontalBarChart('leaderListensChart', reportData.charts.leaderListens, false);
             createHorizontalBarChart('feedbackChart', reportData.charts.feedback, false);
             createHorizontalBarChart('recognitionChart', reportData.charts.recognition, false);
@@ -719,6 +725,11 @@
                                         label += ': ';
                                     }
                                     if (context.parsed !== null) {
+                                        // O NPS DataLabels não tem o 'counts' diretamente, mas podemos inferir ou adicionar ao data.
+                                        // Por simplicidade, vou manter a porcentagem aqui.
+                                        // Para exibir as pessoas nos tooltips dos NPS, o reportData.overview.enps/leadershipNps/rhNps
+                                        // precisaria ter as contagens de Promotores/Neutros/Detratores explicitamente.
+                                        // Como o foco é visibilidade na barra horizontal, vou manter assim para NPS por enquanto.
                                         label += context.parsed.toFixed(2) + '%';
                                     }
                                     return label;
@@ -726,6 +737,9 @@
                             }
                         },
                         legend: { display: false }, // Esconder legenda padrão
+                        datalabels: { // Configuração do plugin datalabels para NPS
+                            display: false, // Desativar para não poluir o gráfico de rosca
+                        }
                     },
                     animation: {
                         animateScale: true,
@@ -789,6 +803,7 @@
                         label: label,
                         data: [chartData.percentages[index]], // Usar porcentagens para o tamanho da barra
                         backgroundColor: colors[index % colors.length], // Usar cores da paleta
+                        count: chartData.counts[index] // Adicionar a contagem de pessoas ao dataset
                     }))
                 },
                 options: {
@@ -819,10 +834,23 @@
                                 label: function(context) {
                                     let label = context.dataset.label || '';
                                     const percentage = chartData.percentages[context.dataIndex].toFixed(2);
-                                    const count = chartData.counts[context.dataIndex];
+                                    const count = chartData.counts[context.dataIndex]; // Pegar a contagem diretamente do chartData
                                     return `${label}: ${percentage}% (${count} pessoas)`;
                                 }
                             }
+                        },
+                        datalabels: { // Configuração do plugin datalabels
+                            color: '#fff', // Cor do texto dos números
+                            font: {
+                                weight: 'bold',
+                                size: 10
+                            },
+                            formatter: function(value, context) {
+                                // Exibir a contagem de pessoas
+                                return context.dataset.count;
+                            },
+                            anchor: 'center', // Posição do label (centro da barra)
+                            align: 'center' // Alinhamento do label
                         }
                     }
                 }
